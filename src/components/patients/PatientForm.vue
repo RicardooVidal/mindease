@@ -52,6 +52,24 @@
         required
       />
 
+      <BaseSelect
+          label="Tipo de consulta"
+          v-model="form.type"
+          :options="typeOptions"
+          :error="form.errors.type"
+          @blur="form.validate('type')"
+          required
+      />
+
+      <BaseSelect
+          label="Tempo de consulta"
+          v-model="form.time"
+          :options="timeOptions"
+          :error="form.errors.time"
+          @blur="form.validate('time')"
+          required
+      />
+
       <label class="form-row">
         <span class="label-text">Observações</span>
         <textarea
@@ -79,6 +97,7 @@ import { useForm } from 'laravel-precognition-vue'
 import { maskCPF, maskCellphone, unmask } from '../../utils/masks.js'
 import { watch } from 'vue'
 import BaseCheckbox from "../forms/BaseCheckbox.vue";
+import {loadTimes, loadTypes} from "../../utils/select.js";
 
 export default {
   components: {BaseCheckbox, BaseInput, BaseSelect },
@@ -98,7 +117,12 @@ export default {
       email: '',
       active: true,
       notes: '',
+      type: '',
+      time: '',
     })
+
+    const typeOptions = loadTypes();
+    const timeOptions = loadTimes();
 
     const populateForm = (data) => {
       if (!data) return
@@ -111,6 +135,8 @@ export default {
       form.phone = maskCellphone(data.phone || '')
       form.gender = data.gender || ''
       form.notes = data.notes || ''
+      form.type = data.type || ''
+      form.time = data.time || ''
     }
 
     watch(() => props.modelValue, (val) => populateForm(val), { immediate: true })
@@ -132,6 +158,8 @@ export default {
             email: form.email,
             active: form.active,
             notes: form.notes,
+            type: form.type,
+            time: form.time,
           })
         },
         onError: (errors) => {
@@ -156,7 +184,9 @@ export default {
       genderOptions,
       submit,
       maskCPF,
-      maskCellphone
+      maskCellphone,
+      typeOptions,
+      timeOptions
     }
   },
 }

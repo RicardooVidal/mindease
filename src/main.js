@@ -6,6 +6,9 @@ import './styles.css'
 
 import PatientIndex from './pages/patients/index.vue'
 import ContractIndex from './pages/contracts/index.vue'
+import ConsultationIndex from './pages/consultations/index.vue'
+import ConsultationNewPage from "./pages/consultations/ConsultationNewPage.vue";
+import ConsultationEditPage from "./pages/consultations/ConsultationEditPage.vue";
 import PatientNewPage from './pages/patients/PatientNewPage.vue'
 import PatientDetailPage from './pages/patients/PatientDetailPage.vue'
 import AlfacePage from './pages/AlfacePage.vue'
@@ -17,6 +20,8 @@ import CompanyPage from "./pages/CompanyPage.vue";
 import PatientEditPage from "./pages/patients/PatientEditPage.vue";
 import ContractNewPage from "./pages/contracts/ContractNewPage.vue";
 import ContractEditPageDeprecated from "./pages/contracts/ContractEditPage-DEPRECATED.vue";
+import { VueDatePicker } from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css'
 
 const routes = [
   { path: '/', redirect: '/patients' },
@@ -29,6 +34,9 @@ const routes = [
   { path: '/patients/new', component: PatientNewPage },
   { path: '/patients/:id/edit', component: PatientEditPage },
   { path: '/patients/:id', component: PatientDetailPage, props: true },
+  { path: '/consultations', component: ConsultationIndex },
+  { path: '/consultations/new', component: ConsultationNewPage },
+  { path: '/consultations/:id/edit', component: ConsultationEditPage },
   { path: '/alface', component: AlfacePage },
   { path: '/tables', component: TablesPage },
 ]
@@ -37,32 +45,32 @@ const router = createRouter({ history: createWebHistory(), routes })
 
 // Global auth guard: ensures routes (except /login) require authentication
 router.beforeEach(async (to, from, next) => {
-  try {
-    authUser.value = await currentUser();
-    tenantUser.value =  localStorage.getItem('mindease:tenant')
-  } catch (e) {
-    authUser.value = false
-    tenantUser.value = false;
-    localStorage.removeItem('mindease:tenant')
-  }
-
-  if (to.path === '/login' || to.path === '/companies') {
-    // if already authenticated, redirect away from login
-    if ((authUser.value && authUser.value !== false) && (tenantUser.value && tenantUser.value !== false)) return next()
-    // return next('/')
-  }
-
-  // For other routes, ensure user is authenticated
-  if (authUser.value === null || authUser.value === false) {
     try {
-      if (tenantUser.value === null || tenantUser === false) {
-        return next({path: '/companies'})
+      authUser.value = await currentUser();
+      tenantUser.value =  await localStorage.getItem('mindease:tenant')
+
+      if (!tenantUser.value || !authUser.value) {
+        if (to.path === '/login' || to.path === '/companies') {
+          return next()
+        }
+
+        throw new Error('User not authenticated or tenant not set');
+      } else {
+          if (to.path === '/login' || to.path === '/companies') {
+            return next({ path: '/'})
+          }
       }
-      return next()
     } catch (e) {
-      return next({ path: '/login', query: { redirect: to.fullPath } })
+      authUser.value = false
+      tenantUser.value = false;
+      localStorage.removeItem('mindease:tenant')
+
+      if (to.path === '/login' || to.path === '/companies') {
+        return next()
+      } else {
+        return next({ path: '/login', query: { redirect: to.fullPath } })
+      }
     }
-  }
 
   return next()
 })
@@ -108,4 +116,6 @@ client.useHttpClient({
     }
   },
 }).withBaseURL(import.meta.env.VITE_API_BASE_URL || 'http://10.0.1.15:8882')
+
+app.component('VueDatePicker', VueDatePicker);
 app.mount('#app')

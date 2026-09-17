@@ -41,7 +41,11 @@ export default {
       const columns = props.columns.map(col => ({
         title: col.label,
         data: col.key,
-        mask: col.mask,
+        defaultContent: '',
+        render: (value) => {
+          if (value == null) return ''
+          return typeof col.mask === 'function' ? col.mask(String(value)) : value
+        },
       }))
 
       if (props.actions.length > 0) {
@@ -60,15 +64,7 @@ export default {
 
       const options = {
         columns,
-        data: props.data.map(row => {
-          const maskedRow = { ...row }
-          props.columns.forEach(col => {
-            if (typeof col.mask === 'function') {
-              maskedRow[col.key] = col.mask(String(row[col.key]))
-            }
-          })
-          return maskedRow
-        }),
+        data: props.data,
         responsive: false,
         scrollX: true,
         scrollY: props.height,

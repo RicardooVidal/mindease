@@ -115,7 +115,6 @@ export async function currentUser() {
         localStorage.removeItem('mindease:token')
       } catch (err) {}
       delete api.defaults.headers.common['Authorization']
-      authUser.value = false
     }
     throw e
   }
