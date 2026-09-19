@@ -25,8 +25,8 @@ export default {
     const router = useRouter()
 
     const actions = [
-      { label: 'Editar', type: 'edit', url: '/consultations/{uuid}/edit' },
-      { label: 'Deletar', type: 'delete', url: '/consultations/{uuid}' },
+      { label: 'Editar', type: 'edit', url: '/appointments/{uuid}/edit' },
+      { label: 'Deletar', type: 'delete', url: '/appointments/{uuid}' },
     ]
 
     const columns = [
@@ -45,7 +45,7 @@ export default {
     const handleActionClick = async ({ url, row }) => {
       if (confirm('Tem certeza que deseja deletar essa consulta?')) {
         try {
-          await api.delete(`/api/consultation/${row.uuid}`)
+          await api.delete(`/api/appointment/${row.uuid}`)
           consults.value = consults.value.filter(p => p.uuid !== row.uuid)
         } catch (e) {
           console.error(e)
@@ -56,7 +56,7 @@ export default {
     const load = async () => {
       loading.value = true
       try {
-        const res = await api.get(`/api/consultation`)
+        const res = await api.get(`/api/appointment`)
         consults.value = res.data.data || []
       } catch (e) {
         console.error(e)

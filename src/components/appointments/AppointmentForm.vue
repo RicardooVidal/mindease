@@ -70,7 +70,7 @@ export default {
   props: {
     patients: { type: Array, default: () => [] },
     modelValue: { type: Object, default: null },
-    url: { type: String, default: '/api/consultation' },
+    url: { type: String, default: '/api/appointment' },
     method: { type: String, default: 'post' },
   },
   emits: ['save', 'cancel'],

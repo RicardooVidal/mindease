@@ -9,7 +9,7 @@ export const authUser = ref(null)
 export const tenantUser = ref(null);
 
 export function initApi() {
-  const base = import.meta.env.VITE_API_BASE_URL || 'http://10.0.1.15:8882'
+  const base = import.meta.env.VITE_API_BASE_URL
   api.defaults.baseURL = base
   // For Sanctum cookie-based auth
   api.defaults.withCredentials = true

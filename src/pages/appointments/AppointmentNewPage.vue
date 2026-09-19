@@ -4,7 +4,7 @@
       <h1>Nova consulta</h1>
     </div>
 
-    <ConsultationForm url="/api/consultation" @save="onSave" @cancel="cancel" :patients="patients" />
+    <AppointmentForm url="/api/appointment" @save="onSave" @cancel="cancel" :patients="patients" />
   </div>
 </template>
 
@@ -14,19 +14,19 @@ import PatientForm from '../../components/patients/PatientForm.vue'
 import {onMounted, ref} from "vue";
 import {loadPatients} from "../../utils/select.js";
 import {api} from "../../composables/useApi.js";
-import ConsultationForm from "../../components/consultations/ConsultationForm.vue";
+import AppointmentForm from "../../components/appointments/AppointmentForm.vue";
 
 export default {
-  components: {ConsultationForm, PatientForm },
+  components: {AppointmentForm, PatientForm },
   setup() {
     const router = useRouter();
     const patients = ref();
 
     const onSave = () => {
-      router.push('/consultations')
+      router.push('/appointments')
     }
 
-    const cancel = () => router.push('/consultations')
+    const cancel = () => router.push('/appointments')
 
     onMounted(() => loadPatients(api, patients))
 

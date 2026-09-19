@@ -6,9 +6,9 @@ import './styles.css'
 
 import PatientIndex from './pages/patients/index.vue'
 import ContractIndex from './pages/contracts/index.vue'
-import ConsultationIndex from './pages/consultations/index.vue'
-import ConsultationNewPage from "./pages/consultations/ConsultationNewPage.vue";
-import ConsultationEditPage from "./pages/consultations/ConsultationEditPage.vue";
+import AppointmentIndex from './pages/appointments/index.vue'
+import AppointmentNewPage from "./pages/appointments/AppointmentNewPage.vue";
+import AppointmentEditPage from "./pages/appointments/AppointmentEditPage.vue";
 import PatientNewPage from './pages/patients/PatientNewPage.vue'
 import PatientDetailPage from './pages/patients/PatientDetailPage.vue'
 import AlfacePage from './pages/AlfacePage.vue'
@@ -34,9 +34,9 @@ const routes = [
   { path: '/patients/new', component: PatientNewPage },
   { path: '/patients/:id/edit', component: PatientEditPage },
   { path: '/patients/:id', component: PatientDetailPage, props: true },
-  { path: '/consultations', component: ConsultationIndex },
-  { path: '/consultations/new', component: ConsultationNewPage },
-  { path: '/consultations/:id/edit', component: ConsultationEditPage },
+  { path: '/appointments', component: AppointmentIndex },
+  { path: '/appointments/new', component: AppointmentNewPage },
+  { path: '/appointments/:id/edit', component: AppointmentEditPage },
   { path: '/alface', component: AlfacePage },
   { path: '/tables', component: TablesPage },
 ]
@@ -115,7 +115,7 @@ client.useHttpClient({
       throw error
     }
   },
-}).withBaseURL(import.meta.env.VITE_API_BASE_URL || 'http://10.0.1.15:8882')
+}).withBaseURL(import.meta.env.VITE_API_BASE_URL)
 
 app.component('VueDatePicker', VueDatePicker);
 app.mount('#app')
