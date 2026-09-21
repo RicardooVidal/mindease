@@ -25,6 +25,7 @@ export default {
     const router = useRouter()
 
     const actions = [
+      { label: 'Meet' , type: 'meet', redirectLink: 'google_meet_url' },
       { label: 'Editar', type: 'edit', url: '/appointments/{uuid}/edit' },
       { label: 'Deletar', type: 'delete', url: '/appointments/{uuid}' },
     ]

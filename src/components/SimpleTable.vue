@@ -55,6 +55,11 @@ export default {
           orderable: false,
           render: function(data, type, row) {
             return props.actions.map(action => {
+              if (action.redirectLink) {
+                const redirectUrl = row[action.redirectLink]
+                if (!redirectUrl) return ''
+                return `<a href="${redirectUrl}" class="action-${action.type}" target="_blank">${action.label}</a>`
+              }
               const url = action.url.replace('{uuid}', row.uuid)
               return `<a href="#" class="action-link action-${action.type}" data-url="${url}" data-type="${action.type}">${action.label || action.type}</a>`
             }).join(' ')
