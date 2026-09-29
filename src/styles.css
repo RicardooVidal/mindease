@@ -66,3 +66,49 @@
 .base-input { padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px; width: 100%; }
 .hint { color: #6b7280; font-size: 12px }
 .error { color: #ef4444; font-size: 12px }
+
+/* Keep page controls and forms comfortable at narrow widths. */
+.page-hero { gap: 16px; flex-wrap: wrap; }
+.page-hero h1 { font-size: clamp(24px, 3vw, 32px); overflow-wrap: anywhere; }
+.page-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { border: 1px solid transparent; font: inherit; cursor: pointer; text-align: center; }
+.btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.form-actions { flex-wrap: wrap; margin-top: 16px; }
+@media (max-width: 768px) {
+  .content { padding: 16px 12px; }
+  .page-actions { width: 100%; }
+  .page-actions .btn, .page-actions a, .form-actions .btn { flex: 1; min-height: 44px; }
+  .card { padding: 14px; }
+  .base-input, .form-row input, .form-row select, .form-row textarea { font-size: 16px; min-width: 0; }
+  .grid-examples { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Desktop fields follow the expected content length; mobile keeps full width. */
+@media (min-width: 769px) {
+  .form-row { width: 100%; max-width: 360px; }
+  .form-row:has(select) { max-width: 260px; }
+  .form-row:has(input[type="date"]),
+  .form-row:has(input[type="number"]),
+  .form-row:has(input[maxlength="14"]),
+  .form-row:has(input[maxlength="15"]) { max-width: 220px; }
+  .form-row:has(input[type="datetime-local"]) { max-width: 280px; }
+  .form-row:has(input[type="email"]),
+  .form-row:has(input[type="file"]) { max-width: 420px; }
+  .form-row:has(textarea) { max-width: 640px; }
+  .select-search { width: 100%; max-width: 420px; }
+  .select-search .form-row { max-width: none; }
+}
+
+@media (min-width: 769px) {
+  .compact-form { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 20px; }
+  .compact-form > .form-row,
+  .compact-form > .select-search { flex: 0 1 auto; margin-bottom: 0; }
+  .compact-form > .checkbox-row { align-self: center; margin-bottom: 0; }
+  .compact-form > .form-row:has(textarea),
+  .compact-form > .form-section,
+  .compact-form > .form-actions,
+  .compact-form > #btn-document { flex: 0 0 100%; min-width: 0; }
+  .compact-form > .form-row:has(textarea) { max-width: none; }
+  .compact-form > .form-row textarea { max-width: 640px; }
+}

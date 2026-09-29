@@ -8,6 +8,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tiptap/extension-font-family": "^3.31.3",
+    "@tiptap/extension-text-style": "^3.31.3",
+    "@tiptap/extension-underline": "^3.31.3",
+    "@tiptap/pm": "^3.31.3",
+    "@tiptap/starter-kit": "^3.31.3",
+    "@tiptap/vue-3": "^3.31.3",
     "@vuepic/vue-datepicker": "^14.0.0",
     "axios": "^1.7.4",
     "datatables.net": "^2.2.0",
@@ -16,7 +22,8 @@
     "laravel-precognition-vue": "^2.0.0",
     "select2": "^4.1.0-rc.0",
     "vue": "^3.3.4",
-    "vue-router": "^4.2.4"
+    "vue-router": "^4.2.4",
+    "vue3-toastify": "^0.2.9"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.0.0",

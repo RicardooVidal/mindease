@@ -1,5 +1,12 @@
 <template>
   <div class="dt-wrapper">
+    <label class="mobile-sort">
+      Ordenar por
+      <select v-model="sortColumn" @change="sortRows">
+        <option v-for="(column, index) in columns" :key="column.key" :value="index">{{ column.label }}</option>
+      </select>
+      <button type="button" @click="toggleSort" :aria-label="sortDirection === 'asc' ? 'Ordenar decrescente' : 'Ordenar crescente'">{{ sortDirection === 'asc' ? 'Crescente ↑' : 'Decrescente ↓' }}</button>
+    </label>
     <table ref="tableRef" class="display"></table>
   </div>
 </template>
@@ -22,9 +29,19 @@ export default {
   setup(props, { emit }) {
     const router = useRouter()
     const tableRef = ref(null)
-    const tableHeight = ref(props.height)
+    const sortColumn = ref(0)
+    const sortDirection = ref('asc')
+    const sortRows = () => dt?.order([Number(sortColumn.value), sortDirection.value]).draw()
+    const toggleSort = () => {
+      sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
+      sortRows()
+    }
     let dt = null
     let $ = null
+    let disposed = false
+    const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    }[char]))
 
     const initTable = async () => {
       const jq = (await import('jquery')).default
@@ -33,9 +50,10 @@ export default {
 
       const DataTableLib = (await import('datatables.net-dt')).default
 
+      if (disposed || !tableRef.value) return
       if (dt) {
-        dt.destroy()
-        dt = null
+        dt.clear().rows.add(props.data).draw(false)
+        return
       }
 
       const columns = props.columns.map(col => ({
@@ -44,7 +62,7 @@ export default {
         defaultContent: '',
         render: (value) => {
           if (value == null) return ''
-          return typeof col.mask === 'function' ? col.mask(String(value)) : value
+          return typeof col.mask === 'function' ? col.mask(String(value)) : escapeHtml(value)
         },
       }))
 
@@ -53,16 +71,15 @@ export default {
           title: 'Ações',
           data: null,
           orderable: false,
+          className: 'actions-cell',
+          searchable: false,
           render: function(data, type, row) {
-            return props.actions.map(action => {
-              if (action.redirectLink) {
-                const redirectUrl = row[action.redirectLink]
-                if (!redirectUrl) return ''
-                return `<a href="${redirectUrl}" class="action-${action.type}" target="_blank">${action.label}</a>`
-              }
-              const url = action.url.replace('{uuid}', row.uuid)
-              return `<a href="#" class="action-link action-${action.type}" data-url="${url}" data-type="${action.type}">${action.label || action.type}</a>`
-            }).join(' ')
+            if (type !== 'display') return ''
+            return '<div class="table-actions">' + props.actions.map((action, index) => {
+              if (action.redirectLink && !row[action.redirectLink]) return ''
+              const tone = action.type === 'delete' ? 'danger' : 'default'
+              return `<button type="button" class="table-action table-action--${tone}" data-action="${index}">${escapeHtml(action.label || action.type)}</button>`
+            }).join('') + '</div>'
           }
         })
       }
@@ -70,10 +87,12 @@ export default {
       const options = {
         columns,
         data: props.data,
-        responsive: false,
-        scrollX: true,
-        scrollY: props.height,
-        scrollCollapse: true,
+        autoWidth: false,
+        createdRow: (row) => {
+          Array.from(row.cells).forEach((cell, index) => {
+            cell.dataset.label = props.columns[index]?.label || 'Ações'
+          })
+        },
         paging: true,
         pageLength: props.perPage,
         lengthMenu: [[5, 10, 25, 50, 100, -1], [5, 10, 25, 50, 100, 'Todos']],
@@ -81,28 +100,42 @@ export default {
           search: 'Buscar:',
           lengthMenu: 'Mostrar _MENU_ registros',
           info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
-          paginate: { next: 'Próxima', previous: 'Anterior' },
-          emptyTable: 'Nenhum dado disponível'
+          emptyTable: 'Nenhum registro disponível',
+          zeroRecords: 'Nenhum resultado encontrado para esta busca',
+          infoEmpty: 'Nenhum registro',
+          infoFiltered: '(filtrado de _MAX_ registros)',
+          searchPlaceholder: 'Pesquisar registros...',
+          paginate: { next: 'Próxima', previous: 'Anterior', first: 'Primeira', last: 'Última' }
         },
         dom: 'lfrtip',
       }
 
       dt = new DataTableLib(tableRef.value, options)
 
-      dt.on('click', 'tbody tr', function() {
+      dt.on('click', 'tbody tr', function(event) {
+        if (event.target.closest('button, a, input, select')) return
         const rowData = dt.row(this).data()
         if (rowData && props.selectable) {
           emit('row-click', rowData)
         }
       })
 
-      $(tableRef.value).off('click', '.action-link').on('click', '.action-link', function(e) {
+      $(tableRef.value).on('click', '.table-action', function(e) {
         e.preventDefault()
-        const $this = $(this)
-        const url = $this.data('url')
-        const type = $this.data('type')
-        if (type === 'delete') {
-          emit('action-click', { url, row: dt.row($this.closest('tr')).data() })
+        e.stopPropagation()
+        const action = props.actions[Number(this.dataset.action)]
+        const row = dt.row($(this).closest('tr')).data()
+        if (!action || !row) return
+        if (action.redirectLink) {
+          const target = new URL(row[action.redirectLink], window.location.origin)
+          if (['https:', 'http:'].includes(target.protocol)) {
+            window.open(target.href, '_blank', 'noopener,noreferrer')
+          }
+          return
+        }
+        const url = action.url?.replace('{uuid}', encodeURIComponent(row.uuid))
+        if (action.type === 'delete') {
+          emit('action-click', { url, row })
         } else if (url) {
           router.push(url)
         }
@@ -116,13 +149,14 @@ export default {
     })
 
     onUnmounted(() => {
+      disposed = true
+      if ($ && tableRef.value) $(tableRef.value).off('click', '.table-action')
       if (dt) {
         dt.destroy()
         dt = null
       }
     })
 
-    watch(() => props.height, (val) => { tableHeight.value = val })
 
     watch(() => props.data, () => {
       nextTick(() => {
@@ -130,26 +164,54 @@ export default {
       })
     }, { deep: true })
 
-    return { tableRef }
+    return { tableRef, sortColumn, sortDirection, sortRows, toggleSort }
   }
 }
 </script>
 
 <style scoped>
-.dt-wrapper {
-  width: 100%;
-  overflow: hidden;
-}
+.mobile-sort { display: none; }
+.mobile-sort select, .mobile-sort button { min-height: 44px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 7px; background: white; color: var(--text); font: inherit; min-width: 0; max-width: 100%; }
+.mobile-sort select { flex: 1; }
+.mobile-sort button { cursor: pointer; }
 
-:deep(.dataTables_scrollHead) {
-  overflow: auto;
+.dt-wrapper { width: 100%; min-width: 0; padding: 16px; background: var(--surface); border: 1px solid #e5e7eb; border-radius: 12px; }
+:deep(table.dataTable) { width: 100% !important; table-layout: fixed; border-collapse: collapse; margin: 16px 0 !important; }
+:deep(table.dataTable th), :deep(table.dataTable td) { white-space: normal; overflow-wrap: anywhere; padding: 12px 10px; vertical-align: middle; text-align: left; }
+:deep(table.dataTable th) { background: #f8fafc; font-size: 12px; color: #475569; }
+:deep(table.dataTable td) { font-size: 14px; border-bottom: 1px solid #edf0f4; }
+:deep(table.dataTable tbody tr:hover) { background: #f8fafc; }
+:deep(.table-actions) { display: flex; flex-wrap: wrap; gap: 6px; }
+:deep(.table-action) { display: inline-flex; align-items: center; justify-content: center; min-height: 36px;border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; color: var(--primary); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; max-width: 100%; }
+:deep(.table-action:hover) { background: #eff6ff; }
+:deep(.table-action--danger) { color: #b91c1c; border-color: #fecaca; }
+:deep(.table-action--danger:hover) { background: #fef2f2; }
+:deep(button:focus-visible), :deep(input:focus-visible), :deep(select:focus-visible) { outline: 2px solid var(--primary); outline-offset: 2px; }
+:deep(:is(.dataTables_filter, .dt-search) input), :deep(:is(.dataTables_length, .dt-length) select) { border: 1px solid #cbd5e1; border-radius: 7px; padding: 8px; max-width: 100%; background: #fff; }
+:deep(:is(.dataTables_filter, .dt-search)), :deep(:is(.dataTables_length, .dt-length)), :deep(:is(.dataTables_info, .dt-info)), :deep(:is(.dataTables_paginate, .dt-paging)) { font-size: 13px; margin-bottom: 10px; }
+:deep(:is(.dataTables_paginate, .dt-paging)) { display: flex; flex-wrap: wrap; justify-content: flex-end; }
+:deep(:is(.dataTables_paginate, .dt-paging) span) { display: flex; flex-wrap: wrap; }
+:deep(:is(.dataTables_paginate, .dt-paging) :is(.paginate_button, .dt-paging-button)) { border-radius: 6px !important; padding: 7px 10px !important; }
+@media (max-width: 1100px) {
+  .mobile-sort { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 13px; }
+  .dt-wrapper { padding: 12px; }
+  :deep(table.dataTable thead) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  :deep(table.dataTable), :deep(table.dataTable tbody) { display: block; width: 100%; }
+  :deep(table.dataTable tbody tr) { display: block; margin-bottom: 12px; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: var(--surface); }
+  :deep(table.dataTable tbody td) { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 12px; padding: 10px 0; width: 100% !important; box-shadow: none !important; }
+  :deep(table.dataTable tbody td::before) { content: attr(data-label); font-size: 12px; font-weight: 600; color: #64748b; }
+  :deep(table.dataTable tbody td:last-child) { border-bottom: 0; }
+  :deep(table.dataTable tbody td.dataTables_empty), :deep(table.dataTable tbody td.dt-empty) { display: block; text-align: center; }
+  :deep(.table-action) { min-height: 44px; }
 }
-:deep(.dataTables_scrollBody) {
-  overflow: auto;
-  max-height: v-bind(tableHeight);
-}
-:deep(table.dataTable) {
-  width: 100% !important;
-  min-width: 600px;
+@media (max-width: 600px) {
+  :deep(:is(.dataTables_filter, .dt-search)), :deep(:is(.dataTables_length, .dt-length)), :deep(:is(.dataTables_info, .dt-info)), :deep(:is(.dataTables_paginate, .dt-paging)) { float: none; text-align: left; width: 100%; }
+  :deep(:is(.dataTables_filter, .dt-search) label) { display: flex; align-items: center; gap: 8px; }
+  :deep(:is(.dataTables_filter, .dt-search) input) { flex: 1; min-width: 0; width: 100%; }
+  :deep(:is(.dataTables_paginate, .dt-paging)) { justify-content: center; }
+  :deep(table.dataTable tbody td.actions-cell) { display: block; }
+  :deep(td.actions-cell::before) { display: block; margin-bottom: 8px; }
+  :deep(.table-actions) { gap: 8px; }
+  :deep(.table-action) { flex: 1; }
 }
 </style>

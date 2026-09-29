@@ -102,6 +102,18 @@ export function type(value) {
     }
 }
 
+export function presence(value) {
+    switch (value) {
+        case 'present':
+            return 'Presente';
+        case 'pending':
+            return 'Pendente';
+        case 'absent':
+            return 'Ausente';
+    }
+}
+
+
 export function moneyReal(value) {
     return 'R$ ' + parseFloat(value).toFixed(2).replace('.', ',');
 }

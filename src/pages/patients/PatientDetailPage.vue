@@ -55,7 +55,6 @@ export default {
 
     const onSave = () => {
       load()
-      alert('Atualizado')
     }
 
     return { patient, loading, onSave }

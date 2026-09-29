@@ -23,7 +23,7 @@ export default {
     const uuid = route.params.id;
 
     const onSave = () => {
-      router.push('/patients')
+      router.push('/patients').catch(console.error)
     }
 
     const cancel = () => router.push('/patients')

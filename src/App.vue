@@ -73,6 +73,7 @@
     <div v-if="isMobile && sidebarOpen" class="overlay" @click="closeSidebar"></div>
 
     <main class="content" @click="onMainClick">
+      <Loading v-if="isLoading" />
       <div v-if="errorMessage" class="error-banner">
         <div>
           <strong>Erro JS:</strong> {{ errorMessage }}
@@ -90,9 +91,11 @@ import SidebarDropdown from './components/SidebarDropdown.vue'
 import {useRouter} from "vue-router";
 import {authUser, logout} from "./composables/useApi.js";
 import {hasTenant} from "./composables/useApi.js";
+import Loading from './components/Loading.vue'
+import { isLoading } from './composables/useLoading'
 
 export default {
-  components: { SidebarDropdown },
+  components: { SidebarDropdown, Loading },
   setup() {
     const isMobile = ref(false)
     const sidebarOpen = ref(false)
@@ -149,7 +152,7 @@ export default {
       }
     }
 
-    return { authUser, isMobile, sidebarOpen, toggleSidebar, closeSidebar, theme, themeClass, onMainClick, errorMessage, handleLogout, checkHasTenant }
+    return { authUser, isMobile, sidebarOpen, toggleSidebar, closeSidebar, theme, themeClass, onMainClick, errorMessage, handleLogout, checkHasTenant, isLoading }
   },
 }
 </script>

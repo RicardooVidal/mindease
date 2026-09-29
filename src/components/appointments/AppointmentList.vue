@@ -14,14 +14,13 @@
 import { ref, onMounted } from 'vue'
 import { api } from "../../composables/useApi.js"
 import SimpleTable from "../SimpleTable.vue"
-import {bool, date, gender, maskCellphone, maskCPF, moneyReal, type} from "../../utils/masks.js";
+import {bool, date, gender, maskCellphone, maskCPF, moneyReal, type, presence} from "../../utils/masks.js";
 import { useRouter } from 'vue-router'
 
 export default {
   components: { SimpleTable },
   setup() {
     const consults = ref([])
-    const loading = ref(false)
     const router = useRouter()
 
     const actions = [
@@ -34,6 +33,7 @@ export default {
       { key: 'patient.name', label: 'Paciente'},
       { key: 'patient.type', label: 'Tipo de Consulta', mask: type},
       { key: 'patient.time', label: 'Tempo'},
+      { key: 'presence', label: 'Presença', mask: presence},
       { key: 'date', label: 'Data e hora de atendimento', mask: date},
       { key: 'value', label: 'Valor' , mask: moneyReal},
       { key: 'created_at', label: 'Criado em' , mask: date}
@@ -55,20 +55,17 @@ export default {
     }
 
     const load = async () => {
-      loading.value = true
       try {
         const res = await api.get(`/api/appointment`)
         consults.value = res.data.data || []
       } catch (e) {
         console.error(e)
-      } finally {
-        loading.value = false
       }
     }
 
     onMounted(load)
 
-    return { consults, loading, columns, actions, handleRowClick, handleActionClick }
+    return { consults, columns, actions, handleRowClick, handleActionClick }
   },
 }
 </script>

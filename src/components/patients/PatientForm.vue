@@ -1,6 +1,6 @@
 <template>
   <div class="card">
-    <form @submit.prevent="submit">
+    <form class="compact-form" @submit.prevent="submit">
       <BaseInput
         label="Nome"
         v-model="form.name"

@@ -11,7 +11,7 @@
 <script>
 import {useRoute, useRouter} from 'vue-router'
 import PatientForm from '../../components/patients/PatientForm.vue'
-import {onMounted, ref} from "vue";
+import {ref, watch} from "vue";
 import {loadPatients} from "../../utils/select.js";
 import {api} from "../../composables/useApi.js";
 import AppointmentForm from "../../components/appointments/AppointmentForm.vue";
@@ -40,10 +40,9 @@ export default {
       }
     }
 
-    onMounted(async () => {
-      loadPatients(api, patients)
-      load()
-    })
+    watch(() => loadPatients(api, patients))
+
+    load()
 
     return { onSave, cancel, patients, appointment }
   },

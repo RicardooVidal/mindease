@@ -1,6 +1,6 @@
 <template>
   <div class="card">
-    <form @submit.prevent="submit">
+    <form class="compact-form" @submit.prevent="submit">
       <BaseInput
         label="Descrição"
         v-model="form.description"
@@ -106,7 +106,7 @@ export default {
         onError: (errors) => {
           console.error('Validation errors:', errors)
         }
-      })
+      }).catch(console.error)
     }
 
     const patientOptions = computed(() =>

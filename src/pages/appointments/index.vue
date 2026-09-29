@@ -3,7 +3,7 @@
       <h1>Consultas</h1>
       <div class="page-actions">
         <router-link to="/appointments/new" class="btn">Nova consulta</router-link>
-        <button @click="connectGoogle">Conectar Google Meet</button>
+        <button class="btn" @click="connectGoogle">Conectar Google Meet</button>
       </div>
     </div>
 
@@ -19,13 +19,17 @@ export default {
   components: {AppointmentList },
   setup() {
     const connectGoogle = async () => {
-      const response = await api.get('/api/google/connect');
+      try {
+        const response = await api.get('/api/google/connect');
 
         window.open(
           response.data.url,
           'google-oauth',
           'width=500,height=650'
         );
+      } catch (error) {
+        console.error(error)
+      }
     }
 
     return {
